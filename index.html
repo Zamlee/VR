@@ -13,7 +13,6 @@
 		  </style>
 	</head>
 	<body>
-		
 		<video id="video" style="position: absolute; z-index: -1; 
 		top: 0;
 		left: 0;
@@ -22,113 +21,54 @@
 		object-fit: fill;" >
 		</video>
 		<div>
-		  <button id="capture">打开相机</button>
+		  <button id="capture" style="position: absolute;">打开相机</button>
 		</div>
-		<!-- <canvas id="canvas" width="480" height="320"></canvas> -->
 		<script>
-		//   //访问用户媒体设备的兼容方法
-		//   function getUserMedia(constraints, success, error) {
-		// 	if (navigator.mediaDevices.getUserMedia) {
-		// 	  //最新的标准API
-		// 	  navigator.mediaDevices.getUserMedia(constraints).then(success).catch(error);
-		// 	} else if (navigator.webkitGetUserMedia) {
-		// 	  //webkit核心浏览器
-		// 	  navigator.webkitGetUserMedia(constraints, success, error)
-		// 	} else if (navigator.mozGetUserMedia) {
-		// 	  //firfox浏览器
-		// 	  navigator.mozGetUserMedia(constraints, success, error);
-		// 	} else if (navigator.getUserMedia) {
-		// 	  //旧版API
-		// 	  navigator.getUserMedia(constraints, success, error);
-		// 	}
-		//   }
-	  
-		//   let video = document.getElementById('video');
-		// //   let canvas = document.getElementById('canvas');
-		// //   let context = canvas.getContext('2d');
-	  
-		//   function success(stream) {
-		// 	//兼容webkit核心浏览器
-		// 	let CompatibleURL = window.URL || window.webkitURL;
-		// 	//将视频流设置为video元素的源
-		// 	console.log(stream);
-	  
-		// 	//video.src = CompatibleURL.createObjectURL(stream);
-		// 	video.srcObject = stream;
-		// 	video.play();
-		//   }
-	  
-		//   function error(error) {
-		// 	console.log(`访问用户媒体设备失败${error.name}, ${error.message}`);
-		//   }
-	  
-		//   if (navigator.mediaDevices.getUserMedia || navigator.getUserMedia || navigator.webkitGetUserMedia || navigator.mozGetUserMedia) {
-		// 	//调用用户媒体设备, 访问摄像头
-		// 	getUserMedia({
-		// 	  video: {
-		// 		width: 480,
-		// 		height: 320
-		// 	  }
-		// 	}, success, error);
-		//   } else {
-		// 	alert('不支持访问用户媒体');
-		//   }
-	  
 		  document.getElementById('capture').addEventListener('click', function () {
-			// context.drawImage(video, 0, 0, 480, 320);
 			getRealMedia()
 		  })
 
 		function getRealMedia() {
-        if (!navigator.mediaDevices.getUserMedia) {
-          Toast('您的系统暂不支持AR导航');
-          return;
-        }
+			if (!navigator.mediaDevices.getUserMedia) {
+				Toast('您的系统暂不支持AR导航');
+				return;
+			}
 
-        // console.log(window.innerHeight - this.canvas.height)
+			navigator.mediaDevices.enumerateDevices()
+			.then(devices => {
+				var videoDevices = [];
+				devices.forEach(function (device) {
+				if (device.kind == "videoinput") {
+					videoDevices.push(device.deviceId)
+				}
+				});
+				console.log(videoDevices)
+				var constraints = {
+				width: 375,
+				height: 500,
+				deviceId: {
+					exact: videoDevices[videoDevices.length - 1]
+				}
+				};
+				return navigator.mediaDevices.getUserMedia({
+				video: constraints
+				});
 
-        navigator.mediaDevices.enumerateDevices()
-          .then(devices => {
-            var videoDevices = [];
-            devices.forEach(function (device) {
-              if (device.kind == "videoinput") {
-                videoDevices.push(device.deviceId)
-              }
-            });
-            console.log(videoDevices)
-            var constraints = {
-              width: 375,
-              height: 500,
-              deviceId: {
-                exact: videoDevices[videoDevices.length - 1]
-              }
-            };
-            return navigator.mediaDevices.getUserMedia({
-              video: constraints
-            });
-
-          })
-          .then(stream => {
-            let video = document.getElementById('video');
-            video.srcObject = stream;
-            video.play();
-            stopId = stream.getTracks()[stream.getTracks().length - 1];
-          })
-          .catch(e => console.error(e));
-        // setTimeout(() => {
-        //   this.getCanvasLine(this.navDetail.cvsDirection)
-        // }, 1000);
-      }
-		
+			})
+			.then(stream => {
+				let video = document.getElementById('video');
+				video.srcObject = stream;
+				video.play();
+				stopId = stream.getTracks()[stream.getTracks().length - 1];
+			})
+			.catch(e => console.error(e));
+		}
 		</script>
 
-
-
 		<script type="module">
-
+		
 			import * as THREE from './three.module.js';
-
-			import { FirstPersonControls } from './FirstPersonControls.js';
+			import { FirstPersonCameraControl } from './FirstPersonCameraControl.js';
 			import { GLTFLoader } from './GLTFLoader.js';
 			import { RGBELoader } from './RGBELoader.js';
 			import { EquirectangularToCubeGenerator } from './EquirectangularToCubeGenerator.js';
@@ -160,7 +100,7 @@
 
 			var cnt = 0
 
-			var gltfObj;
+			
 
 			init();
 			animate();
@@ -176,24 +116,9 @@
 				scene.background = null;
 				// scene.fog = new THREE.Fog( 0xffffff, 0, 7500 );
 
-				var light = new THREE.DirectionalLight( 0xffffff, 1 );
+				var light = new THREE.HemisphereLight( 0xeeeeff, 0x777788, 0.75 );
 				light.position.set( 0.5, 1, 0.75 );
 				scene.add( light );
-				var light2 = new THREE.AmbientLight( 0xffffff);
-				light2.position.set( 0.5, 1, 0.75 );
-				scene.add( light2 );
-
-				controls = new FirstPersonControls( camera );
-				controls.lookSpeed = 0.2; //鼠标移动查看的速度
-				controls.movementSpeed = 20; //相机移动速度
-				controls.noFly = true;
-				controls.constrainVertical = true; //约束垂直
-				controls.verticalMin = 1.0;
-				controls.verticalMax = 2.0;
-				controls.lon = 100; //进入初始视角x轴的角度
-				controls.lat = 0; //初始视角进入后y轴的角度				
-
-
 				raycaster = new THREE.Raycaster( new THREE.Vector3(), new THREE.Vector3( 0, - 1, 0 ), 0, 10 );
 
 				// floor
@@ -279,16 +204,15 @@
 				document.body.appendChild( renderer.domElement );
 
 				//
+				controls = new FirstPersonCameraControl( camera, renderer.domElement );
+				controls.enabled = true;			
 
 				window.addEventListener( 'resize', onWindowResize, false );
-
 
 				for (var m = 0; m < 10; m++) {
 					loadObj()
 					cnt++
 				}
-				
-
 			}
 
 			function loadObj() {
@@ -356,22 +280,6 @@
 						change * Math.floor( Math.random() * 40 - 10 ),
 						change * Math.floor( Math.random() * 40 - 10 ) * 20)
 						scene.add( gltf.scene );
-
-						// //
-						// var obj1 = gltf.scene.clone()
-						// obj1.position.set(Math.floor( Math.random() * 20 - 10 ) * 20,
-						// Math.floor( Math.random() * 20 - 10 ) * 20,
-						// Math.floor( Math.random() * 20 - 10 ) * 20)
-						// scene.add( obj1 );
-
-
-
-
-						gltfObj = gltf.scene.clone()
-						// scene.add( gltfObj );
-
-
-
 					} );
 
 					pmremGenerator.dispose();
@@ -391,34 +299,18 @@
 			var dis = 0
 			var change = false
 			function animate() {
-				var r = (Math.random()) / 200
-				if (change) {
-					r = -1 * r
-				}
-
-				dis += r
-				if (dis > 2) {
-					change = true
-				}
-
-				if (dis <0.5) {
-					change = false
-				}
-
-
-				// console.log(dis)
-				controls.update(r);
 				requestAnimationFrame( animate );
-				// console.log(clock.getDelta())
-				for (var i = 0; i < 10; i++) {
-					if (mixers[i]) {
-						mixers[i].update( 0.01 );
-					}
-				}
-				// if ( mixer ) mixer.update( 0.01 );
+
+				controls.update();
+				// // console.log(clock.getDelta())
+				// for (var i = 0; i < 10; i++) {
+				// 	if (mixers[i]) {
+				// 		mixers[i].update( 0.01 );
+				// 	}
+				// }
+				// // if ( mixer ) mixer.update( 0.01 );
 				renderer.render( scene, camera );
 			}
-
 		</script>
 	</body>
 </html>

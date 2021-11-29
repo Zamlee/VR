@@ -19,7 +19,7 @@ export class FirstPersonCameraControl {
         this._prevMouseY = 0;
         // public settings
         this.applyGravity = true;
-        this.applyCollision = true;
+        this.applyCollision = false;
         this.positionEasing = true;
         this.lookflag = 1;
         this.lookSpeed = 0.008;
@@ -216,7 +216,7 @@ export class FirstPersonCameraControl {
         //gravity test
         this.gravityTest();
         //collision test
-        // this.collisionTest();
+        this.collisionTest();
     }
 
     gravityTest() {

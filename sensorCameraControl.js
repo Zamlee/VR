@@ -14,7 +14,7 @@ export class SensorCameraControl {
         this._rayCaster = new THREE.Raycaster();
         this._fallingTime = 0;
         // internal params for mouse move rotation
-        this._euler = new THREE.Euler(0, 0, 0, "XYZ");
+        this._euler = new THREE.Euler(0, 0, 0, "YZX");
         this._prevMouseX = 0;
         this._prevMouseY = 0;
         // public settings
@@ -247,10 +247,10 @@ export class SensorCameraControl {
 
     getDeltaDeviceOrientation () {
         return {
-            // alpha: this.getDeltaAlpha(),
-            alpha: 0,
-            // beta: this.getDeltaBeta(),
-            beta: 0,
+            alpha: this.getDeltaAlpha(),
+            // alpha: 0,
+            beta: this.getDeltaBeta(),
+            // beta: 0,
             gamma: this.getDeltaGamma(),
             // gamma: 0
         }
@@ -267,7 +267,16 @@ export class SensorCameraControl {
     getDeltaBeta() {
         if (this.deviceOrientation.beta && this.preDeviceOrientation.beta) {
             let delta = this.deviceOrientation.beta - this.preDeviceOrientation.beta
-            return  delta
+            let delta2 = Math.abs(delta)
+            if (delta2 > 180) {
+                if (delta > 0) {
+                    return delta - 360
+                } else {
+                    return delta + 360
+                }
+            } else {
+                return delta
+            }
         } else {
             return 0
         }
@@ -276,7 +285,16 @@ export class SensorCameraControl {
     getDeltaGamma() {
         if (this.deviceOrientation.gamma && this.preDeviceOrientation.gamma) {
             let delta = this.deviceOrientation.gamma - this.preDeviceOrientation.gamma
-            return  delta
+            let delta2 = Math.abs(delta)
+            if (delta2 > 90) {
+                if (delta > 0) {
+                    return delta - 180
+                } else {
+                    return delta + 180
+                }
+            } else {
+                return delta
+            }
         } else {
             return 0
         }
@@ -305,7 +323,7 @@ export class SensorCameraControl {
         this._euler.x +=  (beta);
         // this._euler.y +=  -beta;
         // this._euler.x +=  gamma;
-        this._euler.z +=  alpha;
+        // this._euler.z +=  alpha;
         this.camera.quaternion.setFromEuler(this._euler);
     }
 

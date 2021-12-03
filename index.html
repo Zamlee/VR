@@ -22,53 +22,18 @@
 		</video>
 		<div>
 		  <button id="capture" style="position: absolute;">打开相机</button>
+		  <button id="alpha" style="position: absolute; top:30px">alpha</button>
+		  <button id="beta" style="position: absolute; top:60px">beta</button>
+		  <button id="gamma" style="position: absolute; top:90px">gamma</button>
+		  <button id="Euler" style="position: absolute; top:120px">Euler</button>
 		</div>
-		<script>
-		  document.getElementById('capture').addEventListener('click', function () {
-			getRealMedia()
-		  })
-
-		function getRealMedia() {
-			if (!navigator.mediaDevices.getUserMedia) {
-				Toast('您的系统暂不支持AR导航');
-				return;
-			}
-
-			navigator.mediaDevices.enumerateDevices()
-			.then(devices => {
-				var videoDevices = [];
-				devices.forEach(function (device) {
-					if (device.kind == "videoinput") {
-						videoDevices.push(device.deviceId)
-					}
-				});
-				console.log(videoDevices)
-				var constraints = {
-					width: 375,
-					height: 500,
-					deviceId: {
-						exact: videoDevices[videoDevices.length - 1]
-					}
-				};
-				return navigator.mediaDevices.getUserMedia({
-					video: constraints
-				});
-
-			})
-			.then(stream => {
-				let video = document.getElementById('video');
-				video.srcObject = stream;
-				video.play();
-				stopId = stream.getTracks()[stream.getTracks().length - 1];
-			})
-			.catch(e => console.error(e));
-		}
-		</script>
-
 		<script type="module">
-		
 			import * as THREE from './three.module.js';
 			import { FirstPersonCameraControl } from './firstPersonCameraControl.js';
+			import { SensorCameraControl } from './sensorCameraControl.js';
+			import { DeviceOrientationControls } from './DeviceOrientationControls.js';
+			
+			
 			import { GLTFLoader } from './GLTFLoader.js';
 			import { RGBELoader } from './RGBELoader.js';
 			import { EquirectangularToCubeGenerator } from './EquirectangularToCubeGenerator.js';
@@ -77,6 +42,11 @@
 			import { OrbitControls } from './OrbitControls.js';
 
 			var camera, scene, renderer, controls, loader;
+			// var controls2;
+
+			// var alpha = 0;
+			// var beta = 90;
+			// var gamma = 0
 
 			// 平面坐标x,y 对应三维场景的x，z
 			// y固定为1.5米 
@@ -84,30 +54,107 @@
 				{
 					name: '手机1.glb',
 					position: {
-						x: 27,
+						x: 23,
 						y: 1.5,
-						z: 8
+						z: -8
 					}
 				},
 				{
 					name: '手机2.glb',
 					position: {
-						x: 27,
+						x: 23,
 						y: 1.5,
-						z: 11
+						z: -10
 					}
-				},				
+				},	
+				{
+					name: '手机3.glb',
+					position: {
+						x: 36,
+						y: 1.5,
+						z: -5
+					}
+				},
+				{
+					name: '电视.glb',
+					position: {
+						x: 8,
+						y: 1.5,
+						z: -8
+					}
+				}
+
 			]
+			var cameraPosition = {
+				x: 53,
+				y: 1.5,
+				z: -9
+			}
+
+			document.getElementById('capture').addEventListener('click', function () {
+				getRealMedia()
+			})
+
+			// y轴  左右 (-90~90)
+			// 
+			document.getElementById('gamma').addEventListener('click', function () {
+				// gamma = 3
+				// controls.rotateX(gamma)
+				// controls2.enabled = true
+			})		  
+
+			function getRealMedia() {
+				if (!navigator.mediaDevices.getUserMedia) {
+					Toast('您的系统暂不支持AR导航');
+					return;
+				}
+
+				navigator.mediaDevices.enumerateDevices()
+				.then(devices => {
+					var videoDevices = [];
+					devices.forEach(function (device) {
+						if (device.kind == "videoinput") {
+							videoDevices.push(device.deviceId)
+						}
+					});
+					console.log(videoDevices)
+					var constraints = {
+						width: 375,
+						height: 500,
+						deviceId: {
+							exact: videoDevices[videoDevices.length - 1]
+						}
+					};
+					return navigator.mediaDevices.getUserMedia({
+						video: constraints
+					});
+
+				})
+				.then(stream => {
+					let video = document.getElementById('video');
+					video.srcObject = stream;
+					video.play();
+					stopId = stream.getTracks()[stream.getTracks().length - 1];
+				})
+				.catch(e => console.error(e));
+			}
+		
+
 			init();
 			animate();
 
 			function init() {
-				camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 0.01, 300 );
-				// camera.position.set( 3,1,7 );
-				camera.position.x = -50;
-				camera.position.y = 1.5;
-				camera.position.z = 9;
-				camera.lookAt(-49.9, 1.5, 9)
+				camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 0.01, 300 );
+				camera.position.x = -cameraPosition.x;
+				camera.position.y = cameraPosition.y;
+				camera.position.z = cameraPosition.z;
+				// 根据手机的方向调整相机的x坐标
+				camera.lookAt(-52, camera.position.y, camera.position.z)
+				// camera.lookAt(-36, camera.position.y, -5)
+
+				let  _Euler = new THREE.Euler(0, 0, 0, "YZX");
+				_Euler.setFromQuaternion(camera.quaternion);
+				console.log(_Euler)
 
 				scene = new THREE.Scene();
 				scene.background = null;
@@ -127,8 +174,13 @@
 				renderer.setSize( window.innerWidth, window.innerHeight );
 				document.body.appendChild( renderer.domElement );
 
+				// controls2 = new DeviceOrientationControls( camera );
+				// controls2.enabled = false
+
 				//
-				controls = new FirstPersonCameraControl( camera, renderer.domElement );
+				// controls = new FirstPersonCameraControl( camera, renderer.domElement );
+				controls = new SensorCameraControl( camera, renderer.domElement );
+				
 				controls.enabled = true;	
 				
 				// controls = new OrbitControls( camera, renderer.domElement );
@@ -138,6 +190,20 @@
 				// controls.minDistance = 0.01;
 				// controls.maxDistance = 50000;
 
+				
+				window.addEventListener("deviceorientation", function(event) {
+					// 处理event.alpha、event.beta及event.gamma
+					//   alert(event.alpha)
+					// alert(event.beta)
+					// alert(event.gamma)
+
+					var obj = document.getElementById('alpha')
+					obj.innerHTML = 'alpha: '+event.alpha
+					var obj2 = document.getElementById('beta')
+			  		obj2.innerHTML = 'beta: '+event.beta
+					var obj3 = document.getElementById('gamma')
+			  		obj3.innerHTML = 'gamma: '+event.gamma
+    			}, true);								
 				window.addEventListener( 'resize', onWindowResize, false );
 
 				loader = new GLTFLoader().setPath( 'models/glb/' );
@@ -145,9 +211,16 @@
 					(function(i) {
 						var obj = objData[i]
 						loader.load( obj.name, function ( gltf ) {
-							gltf.scene.position.set(obj.position.x,  1.5, obj.position.z)
+							// gltf.scene.traverse( function ( child ) {
+							// 	if ( child.isMesh ) {
+							// 		console.log(child)
+							// 		child.geometry.computeBoundingBox();
+							// 		console.log(child.geometry.boundingBox)
+							// 	}
+								
+							// });
+							gltf.scene.position.set(-obj.position.x,  1.5, obj.position.z)
 							gltf.scene.scale.set(0.01, 0.01, 0.01);
-							// gltf.scene.rotateY(Math.PI / 2);
 							scene.add( gltf.scene );
 							})						
 					})(i)
@@ -160,7 +233,20 @@
 				renderer.setSize( window.innerWidth, window.innerHeight );
 			}
 
+			function onDeviceorientation(event) {
+				// 处理event.alpha、event.beta及event.gamma
+				console.log(event)
+				alert(JSON.stringify(event))
+			}
+
 			function animate() {
+
+				let  _Euler = new THREE.Euler(0, 0, 0, "YZX");
+				_Euler.setFromQuaternion(camera.quaternion);
+				// console.log(_Euler)
+				var obj = document.getElementById('Euler')
+					obj.innerHTML = 'Euler: x='+_Euler.x+',y='+_Euler.y+',z='+_Euler.z
+
 				requestAnimationFrame( animate );
 
 				for (var i = 0; i < scene.children.length; i++) {
@@ -169,6 +255,7 @@
 					}
 				}
 				controls.update();
+				// controls2.update()
 				renderer.render( scene, camera );
 			}
 		</script>

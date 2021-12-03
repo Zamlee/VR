@@ -1,7 +1,7 @@
 
 import * as THREE from "./three.module.js";
 
-export class FirstPersonCameraControl {
+export class SensorCameraControl {
     constructor(camera, domElement, rayCastObjects) {
         this.camera = camera;
         this.domElement = domElement;
@@ -14,7 +14,7 @@ export class FirstPersonCameraControl {
         this._rayCaster = new THREE.Raycaster();
         this._fallingTime = 0;
         // internal params for mouse move rotation
-        this._euler = new THREE.Euler(0, 0, 0, "YZX");
+        this._euler = new THREE.Euler(0, 0, 0, "XYZ");
         this._prevMouseX = 0;
         this._prevMouseY = 0;
         // public settings
@@ -26,6 +26,13 @@ export class FirstPersonCameraControl {
         this.moveSpeed = 0.4;
         this.playerHeight = 1.4;
         this.g = 9.8;
+
+        this.deviceOrientation = {};
+        this.preDeviceOrientation = {};
+        this.screenOrientation = 0;
+    
+        this.alphaOffset = 0; // radians  
+
         // event bindings
         this.bindmousedown = this.onMouseDown.bind(this);
         this.bindmouseup = this.onMouseUp.bind(this);
@@ -33,9 +40,12 @@ export class FirstPersonCameraControl {
         this.bindonKeyDown = this.onKeyDown.bind(this);
         this.bindonKeyUp = this.onKeyUp.bind(this);
 
-        // this.bindtouchdown = this.onTouchDown.bind(this);
-        // this.bindtouchup = this.onTouchUp.bind(this);
-        // this.bindtouchmove = this.onTouchMove.bind(this);        
+        this.bindtouchdown = this.onTouchDown.bind(this);
+        this.bindtouchup = this.onTouchUp.bind(this);
+        this.bindtouchmove = this.onTouchMove.bind(this);
+
+        this.bindScreenOrientationChange = this.onScreenOrientationChange.bind(this);
+        this.bindDeviceOrientationChange = this.onDeviceOrientationChange.bind(this);        
     }
 
     /**
@@ -71,7 +81,11 @@ export class FirstPersonCameraControl {
         document.body.addEventListener("keyup", this.bindonKeyUp, false);
 
         this.domElement.addEventListener("touchstart", this.bindtouchdown, false);
-        this.domElement.addEventListener("touchend", this.bindtouchup, false);        
+        this.domElement.addEventListener("touchend", this.bindtouchup, false);  
+        
+        
+		window.addEventListener( 'orientationchange', this.bindScreenOrientationChange, false );
+		window.addEventListener( 'deviceorientation', this.bindDeviceOrientationChange, false );        
     }
 
     removeEvents() {
@@ -83,6 +97,16 @@ export class FirstPersonCameraControl {
                 
         document.body.removeEventListener("keydown", this.bindonKeyDown);
         document.body.removeEventListener("keyup", this.bindonKeyUp);
+    }
+
+    onScreenOrientationChange() {
+        this.screenOrientation = window.orientation || 0;
+        alert(this.screenOrientation)
+    }
+
+    onDeviceOrientationChange(event) {
+        this.deviceOrientation = event;
+        // this.deviceOrientation.beta -= 180
     }
 
     onMouseDown(event) {
@@ -195,7 +219,7 @@ export class FirstPersonCameraControl {
      * @return: null
      */
     rotateX(value) {
-        this._euler.y -= value * this.lookSpeed;
+        this._euler.y -=  value * Math.PI / 180;
         this.camera.quaternion.setFromEuler(this._euler);
     }
 
@@ -205,7 +229,7 @@ export class FirstPersonCameraControl {
      * @return: null
      */
     rotateY(value) {
-        this._euler.x -= value * this.lookflag * 0.5 * this.lookSpeed;
+        this._euler.x -=  value * Math.PI / 180;
         this.camera.quaternion.setFromEuler(this._euler);
     }
 
@@ -217,6 +241,72 @@ export class FirstPersonCameraControl {
         this.gravityTest();
         //collision test
         this.collisionTest();
+
+        this.updateQuaternion()
+    }
+
+    getDeltaDeviceOrientation () {
+        return {
+            // alpha: this.getDeltaAlpha(),
+            alpha: 0,
+            // beta: this.getDeltaBeta(),
+            beta: 0,
+            gamma: this.getDeltaGamma(),
+            // gamma: 0
+        }
+    }
+    getDeltaAlpha() {
+        if (this.deviceOrientation.alpha && this.preDeviceOrientation.alpha) {
+            let delta = this.deviceOrientation.alpha - this.preDeviceOrientation.alpha
+            return  delta
+        } else {
+            return 0
+        }
+    }
+
+    getDeltaBeta() {
+        if (this.deviceOrientation.beta && this.preDeviceOrientation.beta) {
+            let delta = this.deviceOrientation.beta - this.preDeviceOrientation.beta
+            return  delta
+        } else {
+            return 0
+        }
+    }
+
+    getDeltaGamma() {
+        if (this.deviceOrientation.gamma && this.preDeviceOrientation.gamma) {
+            let delta = this.deviceOrientation.gamma - this.preDeviceOrientation.gamma
+            return  delta
+        } else {
+            return 0
+        }
+    }
+
+    updateQuaternion() {
+		if ( this.enabled === false ) return;
+
+		if ( this.deviceOrientation ) {
+            let device = this.getDeltaDeviceOrientation()
+			let alpha = THREE.Math.degToRad( device.alpha ); // Z
+			let beta = THREE.Math.degToRad( device.beta ); // X'
+			let gamma = THREE.Math.degToRad( device.gamma ); // Y''
+			let orient = this.screenOrientation ? THREE.Math.degToRad( this.screenOrientation ) : 0; // O
+			this.setObjectQuaternion(alpha, beta, gamma, orient );
+		}
+        
+        this.preDeviceOrientation = this.deviceOrientation
+    }
+
+    // YZX
+    // euler.set( beta, alpha, - gamma, 'YXZ' ); // 'ZXY' for the device, but 'YXZ' for us
+
+    setObjectQuaternion(alpha, beta, gamma, orient ) {
+        this._euler.y +=  gamma;
+        this._euler.x +=  (beta);
+        // this._euler.y +=  -beta;
+        // this._euler.x +=  gamma;
+        this._euler.z +=  alpha;
+        this.camera.quaternion.setFromEuler(this._euler);
     }
 
     gravityTest() {
@@ -301,5 +391,5 @@ export class FirstPersonCameraControl {
             result = intersect[0];
         }
         return result;
-    }
+    }  
 }

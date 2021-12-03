@@ -105,6 +105,9 @@ export class SensorCameraControl {
     }
 
     onDeviceOrientationChange(event) {
+        // if (event.beta > 89) {
+        //     return
+        // }
         this.deviceOrientation = event;
         // this.deviceOrientation.beta -= 180
     }
@@ -318,7 +321,7 @@ export class SensorCameraControl {
     updateQuaternion() {
 		if ( this.enabled === false ) return;
 
-		if ( this.deviceOrientation ) {
+		if ( this.deviceOrientation && this.deviceOrientation.beta <85) {
             let device = this.getDeltaDeviceOrientation()
 			let alpha = THREE.Math.degToRad( device.alpha ); // Z
 			let beta = THREE.Math.degToRad( device.beta ); // X'

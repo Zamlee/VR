@@ -267,7 +267,7 @@
 
 				for (var i = 0; i < scene.children.length; i++) {
 					if (scene.children[i].type == "Scene") {
-						// scene.children[i].lookAt(camera.position)
+						scene.children[i].lookAt(camera.position)
 					}
 				}
 				controls.update();

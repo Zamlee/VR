@@ -80,8 +80,8 @@ export class SensorCameraControl {
         document.body.addEventListener("keydown", this.bindonKeyDown, false);
         document.body.addEventListener("keyup", this.bindonKeyUp, false);
 
-        this.domElement.addEventListener("touchstart", this.bindtouchdown, false);
-        this.domElement.addEventListener("touchend", this.bindtouchup, false);  
+        // this.domElement.addEventListener("touchstart", this.bindtouchdown, false);
+        // this.domElement.addEventListener("touchend", this.bindtouchup, false);  
         
         
 		window.addEventListener( 'orientationchange', this.bindScreenOrientationChange, false );

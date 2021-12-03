@@ -23,7 +23,7 @@ export class SensorCameraControl {
         this.positionEasing = true;
         this.lookflag = 1;
         this.lookSpeed = 0.02;
-        this.moveSpeed = 0.4;
+        this.moveSpeed = 1;
         this.playerHeight = 1.4;
         this.g = 9.8;
 
@@ -213,6 +213,21 @@ export class SensorCameraControl {
         }
     }
 
+    qian() {
+        this._camerLocalDirection.z = 1;
+    }
+
+    hou() {
+        this._camerLocalDirection.z = -1;
+    }
+
+    zuo() {
+        this._camerLocalDirection.x = -1;
+    }
+
+    you() {
+        this._camerLocalDirection.x = 1;
+    }
     /**
      * @description: rotate camera by left/right
      * @param {Number} value
@@ -365,8 +380,14 @@ export class SensorCameraControl {
     }
 
     collisionTest() {
-        if (this._camerLocalDirection.x !== 0) this.collisionTestX();
-        if (this._camerLocalDirection.z !== 0) this.collisionTestZ();
+        if (this._camerLocalDirection.x !== 0) {
+            this.collisionTestX();
+            this._camerLocalDirection.x = 0
+        }
+        if (this._camerLocalDirection.z !== 0) {
+            this.collisionTestZ();
+            this._camerLocalDirection.z = 0
+        }
     }
 
     collisionTestX() {

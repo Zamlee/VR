@@ -26,6 +26,10 @@
 		  <button id="beta" style="position: absolute; top:60px">beta</button>
 		  <button id="gamma" style="position: absolute; top:90px">gamma</button>
 		  <button id="Euler" style="position: absolute; top:120px">Euler</button>
+		  <button id="qian" style="position: absolute; left:25px; top:150px">前</button>
+		  <button id="zuo" style="position: absolute; top:180px">左</button>
+		  <button id="you" style="position: absolute; left: 50px; top:180px">右</button>
+		  <button id="hou" style="position: absolute; left:25px; top:210px">后</button>
 		</div>
 		<script type="module">
 			import * as THREE from './three.module.js';
@@ -86,7 +90,7 @@
 
 			]
 			var cameraPosition = {
-				x: 45,
+				x: 50,
 				y: 1.5,
 				z: -9
 			}
@@ -97,10 +101,17 @@
 
 			// y轴  左右 (-90~90)
 			// 
-			document.getElementById('gamma').addEventListener('click', function () {
-				// gamma = 3
-				// controls.rotateX(gamma)
-				// controls2.enabled = true
+			document.getElementById('qian').addEventListener('click', function () {
+				controls.qian()
+			})	
+			document.getElementById('hou').addEventListener('click', function () {
+				controls.hou()
+			})	
+			document.getElementById('zuo').addEventListener('click', function () {
+				controls.zuo()
+			})	
+			document.getElementById('you').addEventListener('click', function () {
+				controls.you()
 			})		  
 
 			function getRealMedia() {

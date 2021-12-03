@@ -86,7 +86,7 @@
 
 			]
 			var cameraPosition = {
-				x: 53,
+				x: 45,
 				y: 1.5,
 				z: -9
 			}
@@ -149,7 +149,7 @@
 				camera.position.y = cameraPosition.y;
 				camera.position.z = cameraPosition.z;
 				// 根据手机的方向调整相机的x坐标
-				camera.lookAt(-52, camera.position.y, camera.position.z)
+				camera.lookAt(-1, camera.position.y, camera.position.z)
 				// camera.lookAt(-36, camera.position.y, -5)
 
 				let  _Euler = new THREE.Euler(0, 0, 0, "YZX");
@@ -220,7 +220,7 @@
 								
 							// });
 							gltf.scene.position.set(-obj.position.x,  1.5, obj.position.z)
-							gltf.scene.scale.set(0.01, 0.01, 0.01);
+							gltf.scene.scale.set(0.02, 0.02, 0.02);
 							scene.add( gltf.scene );
 							})						
 					})(i)

@@ -149,7 +149,7 @@
 					let video = document.getElementById('video');
 					video.srcObject = stream;
 					video.play();
-					stopId = stream.getTracks()[stream.getTracks().length - 1];
+					// stopId = stream.getTracks()[stream.getTracks().length - 1];
 				})
 				.catch(e => console.error(e));
 			}
@@ -159,7 +159,7 @@
 			animate();
 
 			function init() {
-				camera = new THREE.PerspectiveCamera( 140, window.innerWidth / window.innerHeight, 0.1, 300 );
+				camera = new THREE.PerspectiveCamera( 120, window.innerWidth / window.innerHeight, 0.1, 300 );
 				camera.position.x = -cameraPosition.x;
 				camera.position.y = cameraPosition.y;
 				camera.position.z = cameraPosition.z;
